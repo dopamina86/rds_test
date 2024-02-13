@@ -80,7 +80,7 @@ resource "aws_db_subnet_group" "default_mysql8" {
   subnet_ids  = [local.subnet_id_a, local.subnet_id_b]
 
   tags = {
-    Name = "default subnet group"
+    Name = "default subnet group for mysql8"
   }
 }
 
