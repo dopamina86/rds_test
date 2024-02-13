@@ -73,7 +73,7 @@ resource "aws_db_instance" "sa-db-sorter-damon-sp10" {
   vpc_security_group_ids      = [aws_security_group.sg_rds_db.id]                           # Taken from resource aws_security_group.sg_rds_db.id
   skip_final_snapshot         = local.environment == "prd" ? false : true
   storage_encrypted           = true
-  publicly_accessible         = false
+  publicly_accessible         = false # Pick an adecuate value
   multi_az                    = local.environment == "prd" ? true : false
   allow_major_version_upgrade = local.environment == "prd" ? false : true
   deletion_protection         = local.environment == "prd" ? true : false
