@@ -74,7 +74,7 @@ resource "aws_db_instance" "sa-db-sorter-damon-sp10" {
   skip_final_snapshot         = local.environment == "prd" ? false : true
   storage_encrypted           = true
   publicly_accessible         = false
-  multi_az                    = local.environment == "prd" ? false : true
+  multi_az                    = local.environment == "prd" ? true : false
   allow_major_version_upgrade = local.environment == "prd" ? false : true
   deletion_protection         = local.environment == "prd" ? true : false
   apply_immediately           = local.environment == "prd" ? false : true
