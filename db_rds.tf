@@ -8,23 +8,23 @@ resource "aws_security_group" "sg_rds_db" {
   name   = "sg_rds_db"
   vpc_id = local.vpc_id
 
-  ingress {
+  ingress { # Pick an adecuate values for each ingress, in this case is TCP for MySQL
     description = "MySQL access"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+    cidr_blocks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] # Pick an adecuate values for each ingress, in this case is all Private from IPv4
   }
 
-  ingress {
+  ingress { # Pick an adecuate values for each ingress, in this case is icmp
     description = "Allow all traffic ICMP access from Private Networks"
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
-    cidr_blocks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+    cidr_blocks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] # Pick an adecuate values for each ingress, in this case is all Private from IPv4
   }
 
-  egress {
+  egress { # Pick an adecuate values for each egress, in this case is ALL IPv4
     description = "Allow all traffic output to Private Networks"
     from_port   = 0
     to_port     = 0
@@ -37,8 +37,8 @@ resource "aws_security_group" "sg_rds_db" {
 
 resource "random_password" "password" {
   length           = 16
-  override_special = "!#$%^&*()-_=+[]{}<>:?"
-  special          = true
+  override_special = "!#$%^&*()-_=+[]{}<>:?" # Overriding these special characters
+  special          = true                    # Special characters needed
 }
 
 # Creating an AWS Secret for store the random password
@@ -50,8 +50,8 @@ resource "aws_secretsmanager_secret" "db-pass" {
 # Storing the random passwor in the AWS Secret
 
 resource "aws_secretsmanager_secret_version" "db-pass-val" {
-  secret_id     = aws_secretsmanager_secret.db-pass.id
-  secret_string = random_password.password.result # Value Taken from resource random_password.password
+  secret_id     = aws_secretsmanager_secret.db-pass.id # Value Taken from resource aws_secretsmanager_secret.db-pass
+  secret_string = random_password.password.result      # Value Taken from resource random_password.password
 }
 
 # Creating a MySQL RDS DB
