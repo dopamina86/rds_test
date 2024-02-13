@@ -71,10 +71,10 @@ resource "aws_db_instance" "sa-db-sorter-damon-sp10" {
   parameter_group_name        = "default.mysql8.0"                                          # Copy the parameter_group_name from the RDS Console
   db_subnet_group_name        = "default"                                                   # Copy the subnet group from the RDS Console
   vpc_security_group_ids      = [aws_security_group.sg_rds_db.id]                           # Taken from resource aws_security_group.sg_rds_db.id
-  skip_final_snapshot         = true
+  skip_final_snapshot         = local.environment == "prd" ? false : true
   storage_encrypted           = true
   publicly_accessible         = false
-  multi_az                    = false
+  multi_az                    = local.environment == "prd" ? false : true
   allow_major_version_upgrade = local.environment == "prd" ? false : true
   deletion_protection         = local.environment == "prd" ? true : false
   apply_immediately           = local.environment == "prd" ? false : true
