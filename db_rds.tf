@@ -77,6 +77,7 @@ resource "aws_db_instance" "sa-db-sorter-damon-sp10" {
   multi_az                    = false
   allow_major_version_upgrade = local.environment == "prd" ? false : true
   deletion_protection         = local.environment == "prd" ? true : false
+  apply_immediately           = local.environment == "prd" ? false : true
 
   tags = { # Pick adecuate values
     Name            = "sa-db-sorter-damon-sp10"
