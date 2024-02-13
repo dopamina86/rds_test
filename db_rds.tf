@@ -1,13 +1,20 @@
 locals {
-  vpc_id      = "vpc-01b20bf74cd227c6b" # VPC ID in my local temp SBX environment
   environment = "sbx"
+  subnet_id_a = "subnet-019d987336a8de47f"
+  subnet_id_b = "subnet-0835490e803eefcb1"
+}
+
+# Data for Retrieve Subnet and VPC 
+
+data "aws_subnet" "subnet_id" {
+  id = local.subnet_id_a
 }
 
 # Creating Security group for RDS MySQL DB 
 
 resource "aws_security_group" "sg_rds_db" {
   name   = "sg_rds_db"
-  vpc_id = local.vpc_id
+  vpc_id = data.aws_subnet.subnet_id.vpc_id
 
   ingress { # Pick an adecuate values for each ingress, in this case is TCP for MySQL
     description = "MySQL access"
@@ -55,22 +62,44 @@ resource "aws_secretsmanager_secret_version" "db-pass-val" {
   secret_string = random_password.password.result      # Value Taken from resource random_password.password
 }
 
+# Retrieving Secret Version ID
+
+data "aws_secretsmanager_secret_version" "db-pass-val" {
+  secret_id = aws_secretsmanager_secret.db-pass.id
+
+  depends_on = [
+    aws_secretsmanager_secret.db-pass
+  ]
+}
+
+# RDS DB Subnet Group
+
+resource "aws_db_subnet_group" "default_mysql8" {
+  name        = "default_mysql8"
+  description = "default db subnet group mysql8 for subnets ${local.subnet_id_a} and ${local.subnet_id_b}"
+  subnet_ids  = [local.subnet_id_a, local.subnet_id_b]
+
+  tags = {
+    Name = "default subnet group"
+  }
+}
+
 # Creating a MySQL RDS DB
 
 resource "aws_db_instance" "sa-db-sorter-damon-sp10" {
-  allocated_storage           = 20                                                          # Pick an adecuate value
-  max_allocated_storage       = 1000                                                        # Pick an adecuate value
-  storage_type                = "gp2"                                                       # Pick an adecuate value
-  engine                      = "mysql"                                                     # Pick an adecuate value
-  engine_version              = "8.0.34"                                                    # Pick an adecuate value
-  instance_class              = "db.t3.micro"                                               # Pick an adecuate value
-  identifier                  = "sa-db-sorter-damon-sp10"                                   # Pick an adecuate value
-  db_name                     = "sa_db_sorter_damon_sp10"                                   # Pick an adecuate value
-  username                    = "dbsorteradmin"                                             # Pick an adecuate value
-  password                    = aws_secretsmanager_secret_version.db-pass-val.secret_string # Taken from value storage in resource aws_secretsmanager_secret_version.db-pass-val
-  parameter_group_name        = "default.mysql8.0"                                          # Copy the parameter_group_name from the RDS Console
-  db_subnet_group_name        = "default"                                                   # Copy the subnet group from the RDS Console
-  vpc_security_group_ids      = [aws_security_group.sg_rds_db.id]                           # Taken from resource aws_security_group.sg_rds_db.id
+  allocated_storage           = 20                                                               # Pick an adecuate value
+  max_allocated_storage       = 1000                                                             # Pick an adecuate value
+  storage_type                = "gp2"                                                            # Pick an adecuate value
+  engine                      = "mysql"                                                          # Pick an adecuate value
+  engine_version              = "8.0.34"                                                         # Pick an adecuate value
+  instance_class              = "db.t3.micro"                                                    # Pick an adecuate value
+  identifier                  = "sa-db-sorter-damon-sp10"                                        # Pick an adecuate value
+  db_name                     = "sa_db_sorter_damon_sp10"                                        # Pick an adecuate value
+  username                    = "dbsorteradmin"                                                  # Pick an adecuate value
+  password                    = data.aws_secretsmanager_secret_version.db-pass-val.secret_string # Taken from value storage in resource aws_secretsmanager_secret_version.db-pass-val
+  parameter_group_name        = "default.mysql8.0"                                               # Copy the parameter_group_name from the RDS Console
+  db_subnet_group_name        = aws_db_subnet_group.default_mysql8.id                            # Copy the subnet group from the RDS Console
+  vpc_security_group_ids      = [aws_security_group.sg_rds_db.id]                                # Taken from resource aws_security_group.sg_rds_db.id
   skip_final_snapshot         = local.environment == "prd" ? false : true
   storage_encrypted           = true
   publicly_accessible         = false # Pick an adecuate value
